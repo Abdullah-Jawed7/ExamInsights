@@ -15,10 +15,10 @@ export default function Hero() {
               </p>
             </div>
             <div className="space-x-4">
-              <Link href="/">
+              <Link href="/single">
                 <Button className="bg-blue-600 hover:bg-blue-700 text-white">Get Started</Button>
               </Link>
-              <Link href="/comparison">
+              <Link href="/compair">
                 <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950">Compare Results</Button>
               </Link>
             </div>

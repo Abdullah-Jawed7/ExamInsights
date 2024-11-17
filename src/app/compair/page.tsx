@@ -22,6 +22,9 @@ export default function ComparisonPage() {
   const [entityData, setEntityData] = useState<Record<string, Record<string, string>>>({
     "Entity 1": {},
     "Entity 2": {},
+    "Entity 3": {},
+    "Entity 4": {},
+    "Entity 5": {},
   
   })
   const [showResults, setShowResults] = useState(false)
@@ -32,11 +35,14 @@ export default function ComparisonPage() {
     const newEntityData: Record<string, Record<string, string>> = {}
     for (let i = 1; i <= entityCount; i++) {
       newEntityData[`Entity ${i}`] = entityData[`Entity ${i}`] || {}
-      console.log(entityData);
+      console.log(entityData,"== line 35");
+      console.log(newEntityData,"== line 36");
       
     }
     setEntityData(newEntityData)
-  }, [entityCount , entityData])
+    console.log(entityData);
+    
+  }, [entityCount ])
 
   const addSubject = () => {
     setSubjects([...subjects, ""])
