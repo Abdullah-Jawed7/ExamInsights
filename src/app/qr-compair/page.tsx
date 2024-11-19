@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,8 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { AlertCircle, Plus, Minus, QrCode, Save } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import QRCode from 'qrcode'
-import { BrowserQRCodeReader } from '@zxing/browser'
+import { QrReader } from 'react-qr-reader'
 
 type SubjectPart = {
   name: string
@@ -46,46 +45,21 @@ export default function ComparisonPage() {
   const [comparisonName, setComparisonName] = useState("")
   const [showQRScanner, setShowQRScanner] = useState(false)
   const [activeEntity, setActiveEntity] = useState("Entity 1")
-  const [qrCodeImages, setQrCodeImages] = useState<Record<string, string>>({})
-  const videoRef = useRef<HTMLVideoElement>(null)
 
-  useEffect(() => {
-    if (showQRScanner && videoRef.current) {
-      const codeReader = new BrowserQRCodeReader()
-      codeReader.decodeFromVideoDevice(undefined, videoRef.current, (result, error) => {
-        if (result) {
-          handleQRScan(result.getText())
-          setShowQRScanner(false)
-        }
-        if (error && error.message !== 'No MultiFormat Readers were able to detect the code.') {
-          setError(`QR code scan error: ${error.message}`)
-        }
-      })
-
-      return () => {
-        codeReader.scan()
+  const handleQRScan = (data: string | null) => {
+    if (data) {
+      try {
+        const parsedData = JSON.parse(data) as ExamData
+        setEntityData({ ...entityData, [activeEntity]: parsedData })
+        setShowQRScanner(false)
+      } catch (err) {
+        setError('Failed to parse QR code data. The QR code might be invalid.')
       }
-    }
-  }, [showQRScanner])
-
-  const handleQRScan = (data: string) => {
-    try {
-      const parsedData = JSON.parse(data) as ExamData
-      setEntityData({ ...entityData, [activeEntity]: parsedData })
-      setShowQRScanner(false)
-    } catch (err) {
-      setError('Failed to parse QR code data. The QR code might be invalid.')
     }
   }
 
-  const generateQRCode = async (entityKey: string) => {
-    try {
-      const jsonData = JSON.stringify(entityData[entityKey])
-      const qrCodeDataUrl = await QRCode.toDataURL(jsonData)
-      setQrCodeImages({ ...qrCodeImages, [entityKey]: qrCodeDataUrl })
-    } catch (err) {
-      setError('Failed to generate QR code. Please check your input.')
-    }
+  const handleQRError = (err: Error) => {
+    setError(`QR code scan error: ${err.message}`)
   }
 
   const generateComparison = () => {
@@ -118,9 +92,58 @@ export default function ComparisonPage() {
             className="w-full p-2 border rounded border-blue-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-400 mb-4"
           />
           {entityData[entityKey].subjects.map((subject, subjectIndex) => (
-            <div key={subjectIndex} >{/* ... (keep the existing subject input fields) */}</div>
+            <div key={subjectIndex} className="mb-4">
+              <Input
+                type="text"
+                value={subject.name}
+                onChange={(e) => {
+                  const newSubjects = [...entityData[entityKey].subjects]
+                  newSubjects[subjectIndex].name = e.target.value
+                  setEntityData({ ...entityData, [entityKey]: { ...entityData[entityKey], subjects: newSubjects } })
+                }}
+                placeholder="Subject Name"
+                className="w-full p-2 border rounded border-blue-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-400 mb-2"
+              />
+              {subject.parts.map((part, partIndex) => (
+                <div key={partIndex} className="flex space-x-2 mt-2">
+                  <Input
+                    type="text"
+                    value={part.name}
+                    onChange={(e) => {
+                      const newSubjects = [...entityData[entityKey].subjects]
+                      newSubjects[subjectIndex].parts[partIndex].name = e.target.value
+                      setEntityData({ ...entityData, [entityKey]: { ...entityData[entityKey], subjects: newSubjects } })
+                    }}
+                    placeholder="Part Name"
+                    className="w-1/3 p-2 border rounded border-blue-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-400"
+                  />
+                  <Input
+                    type="number"
+                    value={part.obtainedMarks}
+                    onChange={(e) => {
+                      const newSubjects = [...entityData[entityKey].subjects]
+                      newSubjects[subjectIndex].parts[partIndex].obtainedMarks = parseInt(e.target.value)
+                      setEntityData({ ...entityData, [entityKey]: { ...entityData[entityKey], subjects: newSubjects } })
+                    }}
+                    placeholder="Obtained Marks"
+                    className="w-1/3 p-2 border rounded border-blue-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-400"
+                  />
+                  <Input
+                    type="number"
+                    value={part.totalMarks}
+                    onChange={(e) => {
+                      const newSubjects = [...entityData[entityKey].subjects]
+                      newSubjects[subjectIndex].parts[partIndex].totalMarks = parseInt(e.target.value)
+                      setEntityData({ ...entityData, [entityKey]: { ...entityData[entityKey], subjects: newSubjects } })
+                    }}
+                    placeholder="Total Marks"
+                    className="w-1/3 p-2 border rounded border-blue-200 dark:border-gray-600 focus:border-blue-400 dark:focus:border-blue-400"
+                  />
+                </div>
+              ))}
+            </div>
           ))}
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between">
             <Button onClick={() => {
               const newSubjects = [...entityData[entityKey].subjects, { name: '', parts: [
                 { name: 'MCQs', obtainedMarks: 0, totalMarks: 0 },
@@ -138,22 +161,12 @@ export default function ComparisonPage() {
               <Minus className="mr-2 h-4 w-4" /> Remove Subject
             </Button>
           </div>
-          <div className="flex justify-between mt-4">
-            <Button onClick={() => generateQRCode(entityKey)} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Generate QR Code
-            </Button>
-            <Button onClick={() => {
-              setActiveEntity(entityKey)
-              setShowQRScanner(true)
-            }} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <QrCode className="mr-2 h-4 w-4" /> Scan QR Code
-            </Button>
-          </div>
-          {qrCodeImages[entityKey] && (
-            <div className="mt-4 flex justify-center">
-              <img src={qrCodeImages[entityKey]} alt={`QR Code for ${entityKey}`} />
-            </div>
-          )}
+          <Button onClick={() => {
+            setActiveEntity(entityKey)
+            setShowQRScanner(true)
+          }} className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white">
+            <QrCode className="mr-2 h-4 w-4" /> Scan QR Code for {entityKey}
+          </Button>
         </CardContent>
       </Card>
     ))
@@ -343,7 +356,18 @@ export default function ComparisonPage() {
                 Scan a QR code to import exam data for {activeEntity}
               </DialogDescription>
             </DialogHeader>
-            <video ref={videoRef} className="w-full" />
+            <QrReader
+              onResult={(result, error) => {
+                if (result) {
+                  handleQRScan(result.getText())
+                }
+                if (error) {
+                  handleQRError(error)
+                }
+              }}
+              constraints={{ facingMode: 'environment' }}
+              className="w-full"
+            />
           </DialogContent>
         </Dialog>
       )}
