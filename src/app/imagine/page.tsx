@@ -10,15 +10,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts"
-import { AlertCircle, Plus, Minus, QrCode, Save, Mountain, Download } from 'lucide-react'
+import { AlertCircle, Plus, Minus, QrCode, Save, Download } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import dynamic from 'next/dynamic'
 import QRCode from 'qrcode'
 import { QrReader } from 'react-qr-reader'
 
-// Dynamically import QrReader to avoid SSR issues
-// const QrReader = dynamic(() => import('react-qr-reader'), { ssr: false })
+
+function MortarboardIcon(props:any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  )
+}
 
 type SubjectPart = {
   name: string
@@ -94,18 +112,7 @@ export default function ExamInsightsPlatform() {
     }
   }
 
-  // const handleQRError = (err: Error | string) => {
-  //   setError(`QR code scan error: ${err instanceof Error ? err.message : err}`)
-  // }
-
-  // const handleResult = (result: any, error: any) => {
-  //   if (result) {
-  //     setData(result?.text);
-  //   }
-  //   if (error) {
-  //     console.error(error);
-  //   }
-  // };
+ 
 
   const calculatePercentage = (obtained: number, total: number) => {
     return total > 0 ? (obtained / total) * 100 : 0
@@ -160,13 +167,13 @@ export default function ExamInsightsPlatform() {
   const renderHeader = () => (
     <header className="px-4 lg:px-6 h-16 flex items-center bg-white dark:bg-gray-800 shadow-md">
       <Link href="/" className="flex items-center justify-center">
-        <Mountain className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+      <MortarboardIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
         <span className="ml-2 text-xl font-bold text-blue-900 dark:text-blue-100">ExamInsights</span>
       </Link>
       <nav className="ml-auto flex gap-4 sm:gap-6">
-        <Button variant="ghost" onClick={() => setActiveTab('home')}>Home</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('analyze')}>Analyze</Button>
-        <Button variant="ghost" onClick={() => setActiveTab('compare')}>Compare</Button>
+        <Button className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" variant="ghost" onClick={() => setActiveTab('home')}>Home</Button>
+        <Button className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" variant="ghost" onClick={() => setActiveTab('analyze')}>Analyze</Button>
+        <Button className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" variant="ghost" onClick={() => setActiveTab('compare')}>Compare</Button>
       </nav>
     </header>
   )
@@ -803,7 +810,7 @@ export default function ExamInsightsPlatform() {
       );
     }
 
-    return <div>first select chart type</div>; // Default fallback if no chart type is selected
+    return <div>first select chart type</div>; 
   })()}
             </ResponsiveContainer>
 
