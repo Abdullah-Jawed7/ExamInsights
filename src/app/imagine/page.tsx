@@ -53,7 +53,7 @@ export default function ExamInsightsPlatform() {
 
     useEffect(() => {
       if (examData) {
-        QRCode.toDataURL(examData)
+        QRCode.toDataURL(JSON.stringify(examData))
           .then((url) => setQrCode(url))
           .catch((err) => console.error('Error generating QR code:', err));
       }
@@ -76,8 +76,9 @@ export default function ExamInsightsPlatform() {
   const [showQRCode, setShowQRCode] = useState(false)
   const [selectedChartType, setSelectedChartType] = useState("bar")
 
-  const handleQRScan = (data: string | null) => {
+  const handleQRScan = (data: any) => {
     if (data) {
+      setExamData(data.text)
       try {
         const parsedData = JSON.parse(data) as ExamData
         if (activeTab === 'analyze') {
@@ -93,9 +94,18 @@ export default function ExamInsightsPlatform() {
     }
   }
 
-  const handleQRError = (err: Error | string) => {
-    setError(`QR code scan error: ${err instanceof Error ? err.message : err}`)
-  }
+  // const handleQRError = (err: Error | string) => {
+  //   setError(`QR code scan error: ${err instanceof Error ? err.message : err}`)
+  // }
+
+  // const handleResult = (result: any, error: any) => {
+  //   if (result) {
+  //     setData(result?.text);
+  //   }
+  //   if (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   const calculatePercentage = (obtained: number, total: number) => {
     return total > 0 ? (obtained / total) * 100 : 0
@@ -329,80 +339,114 @@ export default function ExamInsightsPlatform() {
                 </SelectContent>
               </Select>
             </div>
-            <ResponsiveContainer  height={400}>
-              {selectedChartType === 'bar' && (
-                <BarChart data={examData.subjects.map(subject => ({
-                  name: subject.name,
-                  percentage: calculatePercentage(
-                    subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
-                    subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
-                  )
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="percentage" fill="#8884d8" />
-                </BarChart>
-              )}
-              {selectedChartType === 'line' && (
-                <LineChart data={examData.subjects.map(subject => ({
-                  name: subject.name,
-                  percentage: calculatePercentage(
-                    subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
-                    subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
-                  )
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="percentage" stroke="#8884d8" />
-                </LineChart>
-              )}
-              {selectedChartType === 'pie' && (
-                <PieChart>
-                  <Pie
-                    data={examData.subjects.map(subject => ({
-                      name: subject.name,
-                      value: calculatePercentage(
-                        subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
-                        subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
-                      )
-                    }))}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={150}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value.toFixed(2)}%`}
-                  >
-                    {examData.subjects.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              )}
-              {selectedChartType === 'radar' && (
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={examData.subjects.map(subject => ({
-                  subject: subject.name,
-                  percentage: calculatePercentage(
-                    subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
-                    subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
-                  )
-                }))}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar name="Student" dataKey="percentage" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                  <Legend />
-                </RadarChart>
-              )}
-            </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={500}>
+  { (() => {
+    if (selectedChartType === 'bar') {
+      return (
+        <BarChart
+          data={examData.subjects.map(subject => ({
+            name: subject.name,
+            percentage: calculatePercentage(
+              subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
+              subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
+            ),
+          }))}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="percentage" fill="#8884d8" />
+        </BarChart>
+      );
+    }
+
+    if (selectedChartType === 'line') {
+      return (
+        <LineChart
+          data={examData.subjects.map(subject => ({
+            name: subject.name,
+            percentage: calculatePercentage(
+              subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
+              subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
+            ),
+          }))}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Line type="monotone" dataKey="percentage" stroke="#8884d8" />
+        </LineChart>
+      );
+    }
+
+    if (selectedChartType === 'pie') {
+      return (
+        <PieChart>
+          <Pie
+            data={examData.subjects.map(subject => ({
+              name: subject.name,
+              value: calculatePercentage(
+                subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
+                subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
+              ),
+            }))}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            outerRadius={150}
+            fill="#8884d8"
+            dataKey="value"
+            label={({ name, value }) => `${name}: ${value.toFixed(2)}%`}
+          >
+            {examData.subjects.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      );
+    }
+
+    if (selectedChartType === 'radar') {
+      return (
+        <RadarChart
+          cx="50%"
+          cy="50%"
+          outerRadius="80%"
+          data={examData.subjects.map(subject => ({
+            subject: subject.name,
+            percentage: calculatePercentage(
+              subject.parts.reduce((acc, part) => acc + part.obtainedMarks, 0),
+              subject.parts.reduce((acc, part) => acc + part.totalMarks, 0)
+            ),
+          }))}
+        >
+          <PolarGrid />
+          <PolarAngleAxis dataKey="subject" />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+          <Radar
+            name="Student"
+            dataKey="percentage"
+            stroke="#8884d8"
+            fill="#8884d8"
+            fillOpacity={0.6}
+          />
+          <Legend />
+        </RadarChart>
+      );
+    }
+
+    return <div>no provided data</div>;
+  })()}
+</ResponsiveContainer>
+
             {examData.subjects.map((subject, index) => (
               <Card key={index} className="mt-4 bg-gray-50 dark:bg-gray-700">
                 <CardHeader>
@@ -647,73 +691,122 @@ export default function ExamInsightsPlatform() {
                 </SelectContent>
               </Select>
             </div>
-            <ResponsiveContainer width="100%" height={400}>
-              {selectedChartType === 'bar' && (
-                <BarChart data={Object.keys(entityData).map(entity => ({
-                  name: entity,
-                  ...entityData[entity].subjects.reduce((acc, subject) => {
-                    acc[subject.name] = calculatePercentage(
-                      subject.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
-                      subject.parts.reduce((sum, part) => sum + part.totalMarks, 0)
-                    )
-                    return acc
-                  }, {} as Record<string, number>)
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {Array.from(new Set(Object.values(entityData).flatMap(data => data.subjects.map(subject => subject.name)))).map((subject, index) => (
-                    <Bar key={subject} dataKey={subject} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </BarChart>
-              )}
-              {selectedChartType === 'line' && (
-                <LineChart data={Object.keys(entityData).map(entity => ({
-                  name: entity,
-                  ...entityData[entity].subjects.reduce((acc, subject) => {
-                    acc[subject.name] = calculatePercentage(
-                      subject.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
-                      subject.parts.reduce((sum, part) => sum + part.totalMarks, 0)
-                    )
-                    return acc
-                  }, {} as Record<string, number>)
-                }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {Array.from(new Set(Object.values(entityData).flatMap(data => data.subjects.map(subject => subject.name)))).map((subject, index) => (
-                    <Line key={subject} type="monotone" dataKey={subject} stroke={COLORS[index % COLORS.length]} />
-                  ))}
-                </LineChart>
-              )}
-              {selectedChartType === 'radar' && (
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={Array.from(new Set(Object.values(entityData).flatMap(data => data.subjects.map(subject => subject.name)))).map(subject => ({
-                  subject,
-                  ...Object.keys(entityData).reduce((acc, entity) => {
-                    const subjectData = entityData[entity].subjects.find(s => s.name === subject)
-                    if (subjectData) {
-                      acc[entity] = calculatePercentage(
-                        subjectData.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
-                        subjectData.parts.reduce((sum, part) => sum + part.totalMarks, 0)
-                      )
-                    }
-                    return acc
-                  }, {} as Record<string, number>)
-                }))}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  {Object.keys(entityData).map((entity, index) => (
-                    <Radar key={entity} name={entity} dataKey={entity} stroke={COLORS[index % COLORS.length]} fill={COLORS[index % COLORS.length]} fillOpacity={0.6} />
-                  ))}
-                  <Legend />
-                </RadarChart>
-              )}
+            <ResponsiveContainer width="100%" height={500}>
+  {(() => {
+    if (selectedChartType === 'bar') {
+      return (
+        <BarChart
+          data={Object.keys(entityData).map(entity => ({
+            name: entity,
+            ...entityData[entity].subjects.reduce((acc, subject) => {
+              acc[subject.name] = calculatePercentage(
+                subject.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
+                subject.parts.reduce((sum, part) => sum + part.totalMarks, 0)
+              );
+              return acc;
+            }, {} as Record<string, number>),
+          }))}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {Array.from(
+            new Set(
+              Object.values(entityData).flatMap(data =>
+                data.subjects.map(subject => subject.name)
+              )
+            )
+          ).map((subject, index) => (
+            <Bar key={subject} dataKey={subject} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </BarChart>
+      );
+    }
+
+    if (selectedChartType === 'line') {
+      return (
+        <LineChart
+          data={Object.keys(entityData).map(entity => ({
+            name: entity,
+            ...entityData[entity].subjects.reduce((acc, subject) => {
+              acc[subject.name] = calculatePercentage(
+                subject.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
+                subject.parts.reduce((sum, part) => sum + part.totalMarks, 0)
+              );
+              return acc;
+            }, {} as Record<string, number>),
+          }))}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {Array.from(
+            new Set(
+              Object.values(entityData).flatMap(data =>
+                data.subjects.map(subject => subject.name)
+              )
+            )
+          ).map((subject, index) => (
+            <Line key={subject} type="monotone" dataKey={subject} stroke={COLORS[index % COLORS.length]} />
+          ))}
+        </LineChart>
+      );
+    }
+
+    if (selectedChartType === 'radar') {
+      return (
+        <RadarChart
+          cx="50%"
+          cy="50%"
+          outerRadius="80%"
+          data={Array.from(
+            new Set(
+              Object.values(entityData).flatMap(data =>
+                data.subjects.map(subject => subject.name)
+              )
+            )
+          ).map(subject => ({
+            subject,
+            ...Object.keys(entityData).reduce((acc, entity) => {
+              const subjectData = entityData[entity].subjects.find(
+                s => s.name === subject
+              );
+              if (subjectData) {
+                acc[entity] = calculatePercentage(
+                  subjectData.parts.reduce((sum, part) => sum + part.obtainedMarks, 0),
+                  subjectData.parts.reduce((sum, part) => sum + part.totalMarks, 0)
+                );
+              }
+              return acc;
+            }, {} as Record<string, number>),
+          }))}
+        >
+          <PolarGrid />
+          <PolarAngleAxis dataKey="subject" />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} />
+          {Object.keys(entityData).map((entity, index) => (
+            <Radar
+              key={entity}
+              name={entity}
+              dataKey={entity}
+              stroke={COLORS[index % COLORS.length]}
+              fill={COLORS[index % COLORS.length]}
+              fillOpacity={0.6}
+            />
+          ))}
+          <Legend />
+        </RadarChart>
+      );
+    }
+
+    return <div>first select chart type</div>; // Default fallback if no chart type is selected
+  })()}
             </ResponsiveContainer>
+
           </CardContent>
         </Card>
       )}
@@ -763,10 +856,14 @@ export default function ExamInsightsPlatform() {
               </DialogDescription>
             </DialogHeader>
             <QrReader
-              onError={handleQRError}
-              delay={300}
-              onScan={handleQRScan}
-              style={{ width: '100%' }}
+              onResult={handleQRScan}
+              scanDelay={300}
+              constraints={{
+                facingMode: 'environment', // Use the back camera by default
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              }}
+             
             />
           </DialogContent>
         </Dialog>
