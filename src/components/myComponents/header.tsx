@@ -17,7 +17,7 @@ export default function Header() {
           <Link className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" href="#testimonials">
             Testimonials
           </Link>
-          <Link className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" href="/compair">
+          <Link className="text-sm font-medium text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400" href="/imagine">
             Compare Results
           </Link>
         </nav>
