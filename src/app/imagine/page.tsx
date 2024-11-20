@@ -1,5 +1,5 @@
 "use client"
-
+import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -878,7 +878,8 @@ export default function ExamInsightsPlatform() {
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-center"> {qrCode ? (
-        <img src={qrCode} alt="Generated QR Code" />
+              <Image src={qrCode} alt='QR Code'/>  
+                    // <img src={qrCode} alt="Generated QR Code" />
       ) : (
         <p>Loading QR Code...</p>)}
               {/* <QRCode

@@ -42,7 +42,7 @@ export default function ComparisonPage() {
     setEntityData(newEntityData)
     console.log(entityData);
     
-  }, [entityCount ])
+  }, [entityCount ,entityData ])
 
   const addSubject = () => {
     setSubjects([...subjects, ""])
